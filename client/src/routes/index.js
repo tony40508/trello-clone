@@ -1,0 +1,11 @@
+import React from 'react';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
+import Home from './home';
+
+export default () => (
+  <BrowserRouter>
+    <Switch>
+      <Route path="/" render={() => <Home />} exact />
+    </Switch>
+  </BrowserRouter>
+);
