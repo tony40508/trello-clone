@@ -1,6 +1,13 @@
 export default (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
-    username: DataTypes.STRING,
+    username: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
   });
 
   User.associate = (models) => {
