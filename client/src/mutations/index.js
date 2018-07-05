@@ -7,4 +7,5 @@ export const register = gql`
       username
       email
     }
+  }
 `;

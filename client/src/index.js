@@ -12,7 +12,7 @@ import Routes from './routes';
 injectTapEventPlugin();
 
 const networkInterface = createNetworkInterface({
-  uri: 'http://localhost:3000/graphql'
+  uri: 'http://localhost:3030/graphql'
 });
 
 const client = new ApolloClient({
