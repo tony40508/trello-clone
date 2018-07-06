@@ -19,7 +19,7 @@ import { createTokens, refreshTokens } from './auth';
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers
+  resolvers,
 });
 
 const SECRET = 'aslkdjlkaj10830912039jlkoaiuwerasdjflkasd';
@@ -31,7 +31,7 @@ passport.use(
     {
       clientID: 'client_id',
       clientSecret: 'client_secret',
-      callbackURL: 'https://8fc528a5.ngrok.io/auth/facebook/callback'
+      callbackURL: 'https://8fc528a5.ngrok.io/auth/facebook/callback',
     },
     async (accessToken, refreshToken, profile, cb) => {
       // 2 cases
@@ -41,7 +41,7 @@ passport.use(
       // []
       const fbUsers = await models.FbAuth.findAll({
         limit: 1,
-        where: { fb_id: id }
+        where: { fb_id: id },
       });
 
       console.log(fbUsers);
@@ -52,14 +52,14 @@ passport.use(
         const fbUser = await models.FbAuth.create({
           fb_id: id,
           display_name: displayName,
-          user_id: user.id
+          user_id: user.id,
         });
         fbUsers.push(fbUser);
       }
 
       cb(null, fbUsers[0]);
-    }
-  )
+    },
+  ),
 );
 
 app.use(passport.initialize());
@@ -72,9 +72,9 @@ app.get(
   async (req, res) => {
     const [token, refreshToken] = await createTokens(req.user, SECRET);
     res.redirect(
-      `http://localhost:8080/home?token=${token}&refreshToken=${refreshToken}`
+      `http://localhost:8080/home?token=${token}&refreshToken=${refreshToken}`,
     );
-  }
+  },
 );
 
 const addUser = async (req, res, next) => {
@@ -90,7 +90,7 @@ const addUser = async (req, res, next) => {
         token,
         refreshToken,
         models,
-        SECRET
+        SECRET,
       );
       if (newTokens.token && newTokens.refreshToken) {
         res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
@@ -109,8 +109,8 @@ app.use(addUser);
 app.use(
   '/graphiql',
   graphiqlExpress({
-    endpointURL: '/graphql'
-  })
+    endpointURL: '/graphql',
+  }),
 );
 
 const batchSuggestions = async (keys, { Suggestion }) => {
@@ -119,9 +119,9 @@ const batchSuggestions = async (keys, { Suggestion }) => {
     raw: true,
     where: {
       boardId: {
-        $in: keys
-      }
-    }
+        $in: keys,
+      },
+    },
   });
   // suggestion = [{text:'hi', boardId: 1}, {text: 'bye', boardId: 2}, {text: 'bye2'. boardId: 2}]
   const gs = _.groupBy(suggestions, 'boardId');
@@ -138,9 +138,9 @@ app.use(
       models,
       SECRET,
       user: req.user,
-      suggestionLoader: new DataLoader(keys => batchSuggestions(keys, models))
-    }
-  }))
+      suggestionLoader: new DataLoader(keys => batchSuggestions(keys, models)),
+    },
+  })),
 );
 
 const server = createServer(app);
@@ -151,12 +151,12 @@ models.sequelize.sync().then(() =>
       {
         execute,
         subscribe,
-        schema
+        schema,
       },
       {
         server,
-        path: '/subscriptions'
-      }
+        path: '/subscriptions',
+      },
     );
-  })
+  }),
 );
