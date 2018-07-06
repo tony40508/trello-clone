@@ -52,7 +52,7 @@ export default `
     voteOnSuggestion(id: Int!): Boolean!
     updateUser(username: String!, newUsername: String!): [Int!]!
     deleteUser(username: String!): Int!
-    createBoard(name: String): Board!
+    createBoard(owner: Int!, name: String): Board!
     createSuggestion(text: String, boardId: Int!): Suggestion!
     register(username: String!, email: String!, password: String!): User!
     login(email: String!, password: String!): AuthPayload!

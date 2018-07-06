@@ -24,6 +24,7 @@
     "lodash": "^4.17.4",
     "passport": "^0.3.2",
     "passport-facebook": "^2.1.1",
+    "pg": "^7.4.3",
     "sequelize": "^4.1.0",
     "subscriptions-transport-ws": "^0.8.2"
   },
@@ -34,6 +35,6 @@
     "eslint": "^4.0.0",
     "eslint-config-airbnb-base": "^11.2.0",
     "eslint-plugin-import": "^2.3.0",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.17.5"
   }
 }
