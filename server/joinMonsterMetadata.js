@@ -2,9 +2,9 @@ export default {
   Query: {
     fields: {
       getBoard: {
-        where: (table, empty, { boardId }) => `${table}.id = ${boardId}`,
-      },
-    },
+        where: (table, empty, { boardId }) => `${table}.id = ${boardId}`
+      }
+    }
   },
   Suggestion: {
     sqlTable: 'suggestions',
@@ -12,17 +12,18 @@ export default {
     fields: {
       votes: {
         sqlExpr: () =>
-          '(select count(*) from votes where "suggestion"."id" = votes."suggestionId")',
-      },
-    },
+          '(select count(*) from votes where "suggestion"."id" = votes."suggestionId")'
+      }
+    }
   },
   Board: {
     sqlTable: 'boards',
     uniqueKey: 'id',
     fields: {
       suggestions: {
-        sqlJoin: (boardTable, suggestionTable) => `${boardTable}.id = ${suggestionTable}."boardId"`,
-      },
-    },
-  },
+        sqlJoin: (boardTable, suggestionTable) =>
+          `${boardTable}.id = ${suggestionTable}."boardId"`
+      }
+    }
+  }
 };

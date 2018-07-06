@@ -1,9 +1,5 @@
 import React from 'react';
-import { List, ListItem } from 'material-ui/List';
-import ContentInbox from 'material-ui/svg-icons/content/inbox';
-import ActionGrade from 'material-ui/svg-icons/action/grade';
-import ContentSend from 'material-ui/svg-icons/content/send';
-import ContentDrafts from 'material-ui/svg-icons/content/drafts';
+import { List } from 'material-ui/List';
 import TextField from 'material-ui/TextField';
 import { compose, graphql } from 'react-apollo';
 
@@ -54,6 +50,7 @@ class Board extends React.Component {
 
     if (!this.props.data.loading) {
       const { getBoard } = this.props.data;
+      console.log(this.props.data);
       name = getBoard.name;
       suggestions = getBoard.suggestions;
     }

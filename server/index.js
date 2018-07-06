@@ -17,7 +17,7 @@ import joinMonsterMetadata from './joinMonsterMetadata';
 
 const schema = makeExecutableSchema({
   typeDefs,
-  resolvers,
+  resolvers
 });
 
 joinMonsterAdapt(schema, joinMonsterMetadata);
@@ -35,7 +35,12 @@ const addUser = async (req, res, next) => {
       req.user = user;
     } catch (err) {
       const refreshToken = req.headers['x-refresh-token'];
-      const newTokens = await refreshTokens(token, refreshToken, models, SECRET);
+      const newTokens = await refreshTokens(
+        token,
+        refreshToken,
+        models,
+        SECRET
+      );
       if (newTokens.token && newTokens.refreshToken) {
         res.set('Access-Control-Expose-Headers', 'x-token, x-refresh-token');
         res.set('x-token', newTokens.token);
@@ -54,8 +59,8 @@ app.use(
   '/graphiql',
   graphiqlExpress({
     endpointURL: '/graphql',
-    subscriptionsEndpoint: 'ws://localhost:3030/subscriptions',
-  }),
+    subscriptionsEndpoint: 'ws://localhost:3030/subscriptions'
+  })
 );
 
 app.use(
@@ -66,9 +71,9 @@ app.use(
     context: {
       models,
       SECRET,
-      user: req.user,
-    },
-  })),
+      user: req.user
+    }
+  }))
 );
 
 const server = createServer(app);
@@ -79,12 +84,12 @@ models.sequelize.sync().then(() =>
       {
         execute,
         subscribe,
-        schema,
+        schema
       },
       {
         server,
-        path: '/subscriptions',
-      },
+        path: '/subscriptions'
+      }
     );
-  }),
+  })
 );
