@@ -1,45 +1,20 @@
 import bcrypt from 'bcrypt';
 import { PubSub } from 'graphql-subscriptions';
 import _ from 'lodash';
+import joinMonster from 'join-monster';
 
 import { requiresAuth, requiresAdmin } from './permissions';
 import { refreshTokens, tryLogin } from './auth';
 
 export const pubsub = new PubSub();
 
-const USER_ADDED = 'USER_ADDED';
+const VOTE_HAPPENED = 'VOTE_HAPPENED';
 
 export default {
   Subscription: {
-    userAdded: {
-      subscribe: () => pubsub.asyncIterator(USER_ADDED),
+    voteHappened: {
+      subscribe: () => pubsub.asyncIterator(VOTE_HAPPENED),
     },
-  },
-  User: {
-    boards: ({ id }, args, { models }) =>
-      models.Board.findAll({
-        where: {
-          owner: id,
-        },
-      }),
-    suggestions: ({ id }, args, { models }) =>
-      models.Suggestion.findAll({
-        where: {
-          creatorId: id,
-        },
-      }),
-  },
-  Board: {
-    suggestions: ({ id }, args, { suggestionLoader }) =>
-      suggestionLoader.load(id),
-  },
-  Suggestion: {
-    creator: ({ creatorId }, args, { models }) =>
-      models.User.findOne({
-        where: {
-          id: creatorId,
-        },
-      }),
   },
   Query: {
     allUsers: requiresAuth.createResolver((parent, args, { models }) => models.User.findAll()),
@@ -67,29 +42,41 @@ export default {
           creatorId,
         },
       }),
+    getBoard: (parent, args, { models }, info) =>
+      joinMonster(info, args, sql =>
+        models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT }),
+      ),
+    allBoards: (parent, args, { models }, info) =>
+      joinMonster(info, args, sql =>
+        models.sequelize.query(sql, { type: models.sequelize.QueryTypes.SELECT }),
+      ),
   },
 
   Mutation: {
+    voteOnSuggestion: async (parent, { id }, { models, user }) => {
+      await models.Vote.create({ suggestionId: id, userId: user.id });
+      pubsub.publish(VOTE_HAPPENED, { voteHappened: { suggestionId: id, incrementAmount: 1 } });
+      return true;
+    },
     updateUser: (parent, { username, newUsername }, { models }) =>
       models.User.update({ username: newUsername }, { where: { username } }),
-    deleteUser: (parent, args, { models }) =>
-      models.User.destroy({ where: args }),
-    createBoard: requiresAdmin.createResolver((parent, args, { models }) =>
-      models.Board.create(args),
-    ),
-    createSuggestion: (parent, args, { models }) =>
-      models.Suggestion.create(args),
-    createUser: async (parent, args, { models }) => {
-      const user = args;
-      user.password = 'idk';
-      const userAdded = await models.User.create(user);
-      pubsub.publish(USER_ADDED, {
-        userAdded,
-      });
-      return userAdded;
+    deleteUser: (parent, args, { models }) => models.User.destroy({ where: args }),
+    createBoard: async (parent, args, { models, user }) => {
+      const board = await models.Board.create({ ...args, owner: user.id });
+      return {
+        ...board.dataValues,
+        suggestions: [],
+      };
+    },
+    createSuggestion: async (parent, args, { models, user }) => {
+      const s = await models.Suggestion.create({ ...args, creatorId: user.id });
+      return {
+        ...s.dataValues,
+        votes: 0,
+      };
     },
     register: async (parent, args, { models }) => {
-      const user = _.pick(args, ['username', 'isAdmin']);
+      const user = _.pick(args, 'username');
       const localAuth = _.pick(args, ['email', 'password']);
       const passwordPromise = bcrypt.hash(localAuth.password, 12);
       const createUserPromise = models.User.create(user);
@@ -97,7 +84,7 @@ export default {
       localAuth.password = password;
       return models.LocalAuth.create({
         ...localAuth,
-        user_id: createdUser.id,
+        userId: createdUser.id,
       });
     },
     login: async (parent, { email, password }, { models, SECRET }) =>
