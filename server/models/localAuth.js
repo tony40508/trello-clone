@@ -2,12 +2,12 @@ export default (sequelize, DataTypes) => {
   const LocalAuth = sequelize.define('localAuth', {
     email: {
       type: DataTypes.STRING,
-      unique: true
+      unique: true,
     },
-    password: DataTypes.STRING
+    password: DataTypes.STRING,
   });
 
-  LocalAuth.associate = models => {
+  LocalAuth.associate = (models) => {
     LocalAuth.belongsTo(models.User, { foreignKey: 'userId' });
   };
 
