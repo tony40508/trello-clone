@@ -1,9 +1,9 @@
 import React from 'react';
 import { List } from 'material-ui/List';
 import TextField from 'material-ui/TextField';
-import { compose, graphql } from 'react-apollo';
+import { graphql } from 'react-apollo';
 
-import { getBoard } from '../queries';
+import { allBoardsQuery } from '../queries';
 import { createSuggestion } from '../mutations';
 import Suggestion from './Suggestion';
 
@@ -19,7 +19,7 @@ class Board extends React.Component {
     await this.props.mutate({
       variables: {
         text: suggestion,
-        boardId: this.props.boardId
+        boardId: this.props.board.id
       },
       optimisticResponse: {
         __typename: 'Mutation',
@@ -31,29 +31,19 @@ class Board extends React.Component {
       },
       update: (store, { data }) => {
         const newData = store.readQuery({
-          query: getBoard,
-          variables: { boardId: this.props.boardId }
+          query: allBoardsQuery
         });
-        newData.getBoard.suggestions.push(data.createSuggestion);
+        newData.allBoards[this.props.i].suggestions.push(data.createSuggestion);
         store.writeQuery({
-          query: getBoard,
-          data: newData,
-          variables: { boardId: this.props.boardId }
+          query: allBoardsQuery,
+          data: newData
         });
       }
     });
   };
 
   render() {
-    let name = '';
-    let suggestions = [];
-
-    if (!this.props.data.loading) {
-      const { getBoard } = this.props.data;
-      console.log(this.props.data);
-      name = getBoard.name;
-      suggestions = getBoard.suggestions;
-    }
+    const { name, suggestions } = this.props.board;
 
     return (
       <div>
@@ -77,9 +67,4 @@ class Board extends React.Component {
   }
 }
 
-export default compose(
-  graphql(getBoard, {
-    options: ({ boardId }) => ({ variables: { boardId } })
-  }),
-  graphql(createSuggestion)
-)(Board);
+export default graphql(createSuggestion)(Board);
