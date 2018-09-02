@@ -1,11 +1,12 @@
 import React from 'react';
-import { graphql } from 'react-apollo';
+import { compose, graphql } from 'react-apollo';
 import _ from 'lodash';
 import RaisedButton from 'material-ui/RaisedButton';
 
 import Board from '../components/Board';
 import CreateBoardDialog from '../components/CreateBoardDialog';
 import { allBoardsQuery } from '../queries';
+import { voteHappened } from '../subscriptions';
 
 const row = (boards, i) => (
   <div key={i} className="row">
@@ -22,11 +23,39 @@ class Home extends React.Component {
     openDialog: false
   };
 
+  componentWillMount() {
+    this.props.data.subscribeToMore({
+      document: voteHappened,
+      updateQuery: (prev, { subscriptionData }) => {
+        if (!subscriptionData.data) {
+          return prev;
+        }
+        const {
+          suggestionId,
+          incrementAmount
+        } = subscriptionData.data.voteHappened;
+        return {
+          ...prev,
+          allBoards: prev.allBoards.map(x => ({
+            ...x,
+            suggestions: x.suggestions.map(y => ({
+              ...y,
+              votes:
+                y.id === suggestionId
+                  ? y.votes + incrementAmount
+                  : y.votes
+            }))
+          }))
+        };
+      }
+    });
+  }
+
   render() {
     const {
       data: { allBoards = [] }
     } = this.props;
-    console.log(this.state.openDialog);
+
     return (
       <div>
         <RaisedButton
@@ -49,4 +78,4 @@ class Home extends React.Component {
   }
 }
 
-export default graphql(allBoardsQuery)(Home);
+export default compose(graphql(allBoardsQuery))(Home);
