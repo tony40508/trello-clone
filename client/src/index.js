@@ -7,6 +7,10 @@ import {
 } from 'react-apollo';
 import injectTapEventPlugin from 'react-tap-event-plugin';
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider';
+import {
+  SubscriptionClient,
+  addGraphQLSubscriptions
+} from 'subscriptions-transport-ws';
 
 import 'flexboxgrid/dist/flexboxgrid.min.css';
 
@@ -17,6 +21,18 @@ injectTapEventPlugin();
 const networkInterface = createNetworkInterface({
   uri: 'http://localhost:3030/graphql'
 });
+
+const wsClient = new SubscriptionClient(
+  'ws://localhost:3030/subscriptions',
+  {
+    reconnect: true
+  }
+);
+
+const networkInterfaceWithSubscriptions = addGraphQLSubscriptions(
+  networkInterface,
+  wsClient
+);
 
 networkInterface.use([
   {
@@ -34,7 +50,7 @@ networkInterface.use([
 ]);
 
 const client = new ApolloClient({
-  networkInterface
+  networkInterface: networkInterfaceWithSubscriptions
 });
 
 const App = (
